@@ -273,11 +273,11 @@
                     class="flex w-full items-center p-2 pl-2 border-transparent bg-white border-l-2 relative hover:bg-teal-600 hover:text-teal-100"
                   >
                     <div class="w-full items-center flex">
-                      <button
-                        @click="selectResource(index, item)"
-                        class="mx-2 text-left w-full leading-6"
+                      <button :disabled="!item.is_active"
+                        @click="selectResource(item)"
+                        class="mx-2 text-left w-full leading-6 disabled:text-gray-40"
                       >
-                        {{ item }}
+                        {{ item.resource_name }}
                       </button>
                     </div>
                   </div>
@@ -292,7 +292,6 @@
               v-model="resourceCreate"
             /><button
               @click="resourceCreate = !resourceCreate"
-              for="create"
               class="font-semibold"
             >
               Create
@@ -300,7 +299,6 @@
           </div>
           <div class="flex items-center space-x-2">
             <input id="read" type="checkbox" v-model="resourceRead" /><button
-              for="read"
               class="font-semibold"
               @click="resourceRead = !resourceRead"
             >
@@ -313,7 +311,6 @@
               type="checkbox"
               v-model="resourceUpdate"
             /><button
-              for="update"
               class="font-semibold"
               @click="resourceUpdate = !resourceUpdate"
             >
@@ -326,7 +323,6 @@
               type="checkbox"
               v-model="resourceDelete"
             /><button
-              for="delete"
               class="font-semibold"
               @click="resourceDelete = !resourceDelete"
             >
@@ -340,7 +336,6 @@
               v-model="resourceSearch"
             /><button
               @click="resourceSearch = !resourceSearch"
-              for="search"
               class="font-semibold"
             >
               Search
@@ -408,11 +403,20 @@
 
 <script lang="ts">
 import Notification from "@/components/Notification.vue";
-import { defineComponent, ref } from "vue";
+import { defineComponent, onMounted, ref } from "vue";
 import type { Ref } from "vue";
 
 export default defineComponent({
   setup() {
+
+    onMounted(async() => {
+      const resources = await fetch(`${import.meta.env.VITE_SERVER_URL}/resources/4.0`)
+      if (resources.status === 200) {
+        const resourceJSON = await resources.json()
+        resourceList.value = resourceJSON.data.resources
+      }
+    })
+
     const privilages: Ref<
       {
         resource: string;
@@ -443,9 +447,8 @@ export default defineComponent({
     let chevronUp = ref(false);
     let clientNameInput = ref();
     let clientNameRequired = ref(false);
+    let resourceList: Ref<{id:number, resource_name: string, fhir_version: number, is_active:boolean}[]> = ref([]);
 
-    //TODO: populate resources from db
-    const resourceList = ["Patient"];
     const addNewPrivilage = () => {
       if (resourceId.value === null) {
         hasNotification.value = true;
@@ -490,9 +493,9 @@ export default defineComponent({
       chevronUp.value = !chevronUp.value;
     };
 
-    const selectResource = (index: number, selectedResource: string) => {
-      resource.value = selectedResource;
-      resourceId.value = index;
+    const selectResource = (selectedResource: {id:number, resource_name: string, fhir_version: number, is_active:boolean}) => {
+      resource.value = selectedResource.resource_name;
+      resourceId.value = selectedResource.id;
       toggleResourceSelection.value = !toggleResourceSelection.value;
       chevronUp.value = !chevronUp.value;
     };
@@ -567,7 +570,9 @@ export default defineComponent({
       clearResource,
       clientNameRequired,
     };
+
   },
   components: { Notification },
 });
+
 </script>
