@@ -158,8 +158,11 @@
         :message="notificationMessage"
         type="warning"
       ></Notification>
+      <h2 class="text-lg font-bold">Client Details</h2>
       <div class="control">
-        <label for="clientName" class="font-semibold">Client Name</label>
+        <label for="clientName" class="font-semibold text-sm"
+          >Client Name</label
+        >
         <input
           ref="clientNameInput"
           v-model="clientName"
@@ -172,19 +175,47 @@
           >* Client name is required</span
         >
       </div>
-      <div>
-        <label for="privilages" class="font-semibold"
-          >Select Client Privilages For FHIR Resource</label
+      <div class="control">
+        <label class="font-semibold text-sm" for="host">Client Host</label>
+        <input
+          ref="clientHostInput"
+          v-model="clientHost"
+          type="text"
+          class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
+          placeholder="Host address of your client"
+        />
+        <span v-if="hasClientHostError" class="text-red-600 text-sm">{{
+          clientHostError
+        }}</span>
+      </div>
+      <div class="control">
+        <label for="authendpoint" class="font-semibold text-sm"
+          >Authentication Endpoint</label
         >
-        <div class="grid grid-cols-8 mt-2 gap-4 pb-2">
+        <input
+          ref="clientAuthEndpointInput"
+          v-model="clientAuthEndpoint"
+          type="text"
+          class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
+          placeholder="Authentication endpoint for the client, has to same domain as the host address"
+        />
+        <span v-if="hasEndpointError" class="text-red-600 text-sm">{{
+          endpointError
+        }}</span>
+      </div>
+      <div>
+        <h2 class="text-lg font-bold mt-8 mb-4">
+          Select Client Privilages For FHIR Resource
+        </h2>
+        <div class="grid grid-cols-8 mt-2 gap-4 pb-1.5">
           <div>
-            <p class="font-semibold">FHIR Resource</p>
+            <p class="font-semibold text-sm">FHIR Resource</p>
           </div>
-          <div class="col-span-7">
+          <div class="col-span-7 text-sm">
             <p class="font-semibold text-center">Privilages</p>
           </div>
         </div>
-        <div class="grid grid-cols-8 mt-2 gap-4 border-b pb-3">
+        <div class="grid grid-cols-8 mt-2 gap-4 pb-1.5">
           <div class="col-span-2">
             <div class="w-full svelte-1l8159u">
               <div
@@ -192,6 +223,7 @@
               >
                 <div class="flex flex-auto flex-wrap"></div>
                 <input
+                  ref="resourceInput"
                   v-model="resource"
                   placeholder="Select FHIR resource"
                   class="p-1 px-2 appearance-none outline-none w-full text-gray-800"
@@ -273,7 +305,8 @@
                     class="flex w-full items-center p-2 pl-2 border-transparent bg-white border-l-2 relative hover:bg-teal-600 hover:text-teal-100"
                   >
                     <div class="w-full items-center flex">
-                      <button :disabled="!item.is_active"
+                      <button
+                        :disabled="!item.is_active"
                         @click="selectResource(item)"
                         class="mx-2 text-left w-full leading-6 disabled:text-gray-40"
                       >
@@ -368,22 +401,22 @@
             :key="index"
             class="text-center"
           >
-            <td>
+            <td class="py-2 border">
               {{ privilage.resource }}
             </td>
-            <td>
+            <td class="py-2 border">
               {{ privilage.privilages.create }}
             </td>
-            <td>
+            <td class="py-2 border">
               {{ privilage.privilages.read }}
             </td>
-            <td>
+            <td class="py-2 border">
               {{ privilage.privilages.update }}
             </td>
-            <td>
+            <td class="py-2 border">
               {{ privilage.privilages.delete }}
             </td>
-            <td>
+            <td class="py-2 border">
               {{ privilage.privilages.search }}
             </td>
           </tr>
@@ -408,14 +441,15 @@ import type { Ref } from "vue";
 
 export default defineComponent({
   setup() {
-
-    onMounted(async() => {
-      const resources = await fetch(`${import.meta.env.VITE_SERVER_URL}/resources/4.0`)
+    onMounted(async () => {
+      const resources = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/resources/4.0`
+      );
       if (resources.status === 200) {
-        const resourceJSON = await resources.json()
-        resourceList.value = resourceJSON.data.resources
+        const resourceJSON = await resources.json();
+        resourceList.value = resourceJSON.data.resources;
       }
-    })
+    });
 
     const privilages: Ref<
       {
@@ -446,8 +480,24 @@ export default defineComponent({
     let toggleResourceSelection = ref(false);
     let chevronUp = ref(false);
     let clientNameInput = ref();
+    let clientHostInput = ref();
+    let clientAuthEndpointInput = ref();
     let clientNameRequired = ref(false);
-    let resourceList: Ref<{id:number, resource_name: string, fhir_version: number, is_active:boolean}[]> = ref([]);
+    let endpointError = ref("");
+    let clientHostError = ref("");
+    let hasClientHostError = ref(false);
+    let hasEndpointError = ref(false);
+    let clientHost = ref("");
+    let clientAuthEndpoint = ref("");
+    let resourceInput = ref();
+    let resourceList: Ref<
+      {
+        id: number;
+        resource_name: string;
+        fhir_version: number;
+        is_active: boolean;
+      }[]
+    > = ref([]);
 
     const addNewPrivilage = () => {
       if (resourceId.value === null) {
@@ -493,25 +543,89 @@ export default defineComponent({
       chevronUp.value = !chevronUp.value;
     };
 
-    const selectResource = (selectedResource: {id:number, resource_name: string, fhir_version: number, is_active:boolean}) => {
+    const selectResource = (selectedResource: {
+      id: number;
+      resource_name: string;
+      fhir_version: number;
+      is_active: boolean;
+    }) => {
       resource.value = selectedResource.resource_name;
       resourceId.value = selectedResource.id;
       toggleResourceSelection.value = !toggleResourceSelection.value;
       chevronUp.value = !chevronUp.value;
     };
 
+    const isURL = (url: string): boolean => {
+      var urlPattern = new RegExp(
+        "^(https?:\\/\\/)?" + // validate protocol
+          "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" + // validate domain name
+          "((\\d{1,3}\\.){3}\\d{1,3}))" + // validate OR ip (v4) address
+          "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // validate port and path
+          "(\\?[;&a-z\\d%_.~+=-]*)?" + // validate query string
+          "(\\#[-a-z\\d_]*)?$",
+        "i"
+      ); // validate fragment locator
+
+      return urlPattern.test(url);
+    };
+
     const createClient = async () => {
-      if (!clientName.value) {
+      if (
+        !clientName.value ||
+        (clientName.value as string).trim().length === 0
+      ) {
         hasNotification.value = true;
         notificationMessage.value = "Please enter a client name";
         (clientNameInput.value as HTMLInputElement).focus();
         clientNameRequired.value = true;
         return;
+      } else {
+        clientNameRequired.value = false;
       }
+
+      if (clientHost.value.trim().length === 0 || !isURL(clientHost.value)) {
+        hasNotification.value = true;
+        notificationMessage.value = "Enter a valid client host address";
+        clientHostError.value = "* Invalid client host";
+        hasClientHostError.value = true;
+        (clientHostInput.value as HTMLInputElement).focus();
+        return;
+      }
+
+      hasClientHostError.value = false;
+
+      if (
+        clientAuthEndpoint.value.trim().length === 0 ||
+        !isURL(clientAuthEndpoint.value)
+      ) {
+        hasNotification.value = true;
+        notificationMessage.value = "Enter a valid auth endpoint";
+        endpointError.value = "* Invalid auth endpoint";
+        hasEndpointError.value = true;
+        (clientAuthEndpointInput.value as HTMLInputElement).focus();
+        return;
+      } else if (isURL(clientAuthEndpoint.value)) {
+        try {
+          const authUrl = new URL(clientAuthEndpoint.value);
+          const hostUrl = new URL(clientHost.value);
+
+          if (authUrl.host !== hostUrl.host) {
+            hasNotification.value = true;
+            notificationMessage.value =
+              "Client URL host and Auth endpoint URL host missmatch";
+            return;
+          }
+        } catch (error) {
+          hasNotification.value = true;
+          notificationMessage.value = "Invalid URLs provided";
+        }
+      }
+      hasEndpointError.value = false;
 
       if (privilages.value.length === 0) {
         hasNotification.value = true;
         notificationMessage.value = "Please add at least one FHIR privilage";
+        (resourceInput.value as HTMLInputElement).focus();
         return;
       }
 
@@ -524,7 +638,9 @@ export default defineComponent({
         },
         body: JSON.stringify({
           clientName: clientName.value,
-          payload: privilages.value,
+          clientHost: clientHost.value,
+          clientAuthEndpoint: clientAuthEndpoint.value,
+          resources: privilages.value,
         }),
       });
 
@@ -569,10 +685,17 @@ export default defineComponent({
       clientNameInput,
       clearResource,
       clientNameRequired,
+      endpointError,
+      clientHostError,
+      hasClientHostError,
+      hasEndpointError,
+      clientHost,
+      clientAuthEndpoint,
+      clientHostInput,
+      clientAuthEndpointInput,
+      resourceInput,
     };
-
   },
   components: { Notification },
 });
-
 </script>
