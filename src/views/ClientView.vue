@@ -124,7 +124,7 @@
           class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
           placeholder="Host address of your client" />
         <span v-if="hasClientHostError" class="text-red-600 text-sm">{{
-        clientHostError
+            clientHostError
         }}</span>
       </div>
       <div class="control">
@@ -133,7 +133,7 @@
           class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
           placeholder="URL to access the public key for authentication. This has to same domain as the host address" />
         <span v-if="hasEndpointError" class="text-red-600 text-sm">{{
-        endpointError
+            endpointError
         }}</span>
       </div>
       <div>
@@ -192,9 +192,9 @@
                   <div
                     class="flex w-full items-center p-2 pl-2 border-transparent bg-white border-l-2 relative hover:bg-teal-600 hover:text-teal-100">
                     <div class="w-full items-center flex">
-                      <button :disabled="!item.is_active" @click="selectResource(item)"
+                      <button :disabled="!item.isActive" @click="selectResource(item)"
                         class="mx-2 text-left w-full leading-6 disabled:text-gray-40">
-                        {{ item.resource_name }}
+                        {{ item.resourceName }}
                       </button>
                     </div>
                   </div>
@@ -274,9 +274,11 @@
         </table>
       </div>
       <div>
-        <button class="bg-teal-600 rounded-lg text-white font-bold px-3 py-2 hover:bg-teal-700" @click="createClient()">
+        <button :disabled="loading" class="bg-teal-600 rounded-lg text-white font-bold px-3 py-2 hover:bg-teal-700"
+          @click="createClient()">
           Create New Client
         </button>
+        <LoadingSpinner v-if="loading"></LoadingSpinner>
       </div>
     </div>
   </div>
@@ -286,10 +288,76 @@
 import Notification from "@/components/Notification.vue";
 import { defineComponent, onMounted, ref } from "vue";
 import type { Ref } from "vue";
+import LoadingSpinner from "@/components/LoadingSpinner.vue";
+import { useRoute } from 'vue-router'
 
 export default defineComponent({
   setup() {
+    const route = useRoute()
+
     onMounted(async () => {
+      if (route.params.id && route.params.id !== "create") {
+        loading.value = true
+        const client = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/client/${route.params.id}`)
+
+        if (!client.ok) {
+          notificationMessage.value = "An error occured in getting client details";
+          hasNotification.value = true;
+        }
+
+        if (client.status === 200) {
+          const parseClient = await client.json()
+          let parseClientPrivilages: Array<{
+            clientsId: number, create: boolean, delete: boolean, id: number, read: boolean,
+            search: boolean, update: boolean,
+            resource: { resourceName: string, id: number },
+            resourcesId: number,
+          }> = parseClient.data.client.clientPrivilages
+
+          let tempParseClientPrivilages: {
+            resource: string;
+            resourcesId: number;
+            privilages: {
+              create: boolean;
+              read: boolean;
+              update: boolean;
+              delete: boolean;
+              search: boolean;
+            };
+          }[] = []
+          parseClientPrivilages.forEach(element => {
+            let tempPrivilage: {
+              resource: string, resourcesId: number, privilages: {
+                create: boolean,
+                read: boolean,
+                update: boolean,
+                delete: boolean,
+                search: boolean
+              }
+            } = {
+              resource: element.resource.resourceName,
+              resourcesId: element.resource.id,
+              privilages: {
+                create: element.create,
+                read: element.read,
+                update: element.update,
+                delete: element.delete,
+                search: element.search,
+              }
+            }
+
+            tempParseClientPrivilages.push(tempPrivilage)
+          });
+          privilages.value = tempParseClientPrivilages
+          clientName.value = parseClient.data.client.clientName
+          clientHost.value = parseClient.data.client.clientHost
+          clientAuthEndpoint.value = parseClient.data.client.clientPublicKeyEndpoint
+
+        } else {
+          hasNotification.value = true
+          notificationMessage.value = "Error getting client details"
+        }
+      }
       const resources = await fetch(
         `${import.meta.env.VITE_SERVER_URL}/api/resources/4.0`
       );
@@ -297,6 +365,7 @@ export default defineComponent({
         const resourceJSON = await resources.json();
         resourceList.value = resourceJSON.data.resources;
       }
+      loading.value = false
     });
 
     const privilages: Ref<
@@ -315,6 +384,7 @@ export default defineComponent({
 
     const privilagesIdArray: Number[] = [];
 
+    let clientDetails = ref()
     let hasNotification = ref(false);
     let notificationMessage = ref();
     let clientName = ref();
@@ -341,11 +411,13 @@ export default defineComponent({
     let resourceList: Ref<
       {
         id: number;
-        resource_name: string;
-        fhir_version: number;
-        is_active: boolean;
+        resourceName: string;
+        fhirVersion: number;
+        isActive: boolean;
       }[]
     > = ref([]);
+
+    let loading = ref(false)
 
     const addNewPrivilage = () => {
       if (resourceId.value === null) {
@@ -393,11 +465,11 @@ export default defineComponent({
 
     const selectResource = (selectedResource: {
       id: number;
-      resource_name: string;
-      fhir_version: number;
-      is_active: boolean;
+      resourceName: string;
+      fhirVersion: number;
+      isActive: boolean;
     }) => {
-      resource.value = selectedResource.resource_name;
+      resource.value = selectedResource.resourceName;
       resourceId.value = selectedResource.id;
       toggleResourceSelection.value = !toggleResourceSelection.value;
       chevronUp.value = !chevronUp.value;
@@ -477,6 +549,7 @@ export default defineComponent({
         return;
       }
 
+      loading.value = true
       // post payload to the server
       const post = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/client`, {
         method: "post",
@@ -500,7 +573,7 @@ export default defineComponent({
         hasNotification.value = true
         notificationMessage.value = "An error occured in creating client"
       }
-
+      loading.value = false
     };
 
     const clearResource = () => {
@@ -543,8 +616,9 @@ export default defineComponent({
       clientHostInput,
       clientAuthEndpointInput,
       resourceInput,
+      loading
     };
   },
-  components: { Notification },
+  components: { Notification, LoadingSpinner },
 });
 </script>
