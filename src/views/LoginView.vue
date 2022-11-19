@@ -38,7 +38,7 @@
         </div>
         <button
           @click.prevent="login()"
-          class="rounded-md px-3 py-2 font-bold bg-teal-600 hover:bg-teal-700 w-32 text-white focus:outline-none"
+          class="rounded-md px-3 py-2 font-bold bg-teal-600 hover:bg-teal-700 text-white focus:outline-none w-full"
         >
           Login
         </button>
