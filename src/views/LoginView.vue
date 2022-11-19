@@ -5,7 +5,7 @@
         <img class="h-32" src="/fhirWall.svg" alt="" />
       </div>
       <h1 class="text-3xl font-bold text-center">FHIR Auth</h1>
-      <h1 className="text-2xl font-light text-center">Login to dashboard</h1>
+      <h1 class="text-2xl font-light text-center">Login to dashboard</h1>
       <Notification
         v-if="hasNotification"
         :message="notificationMessage"
@@ -20,7 +20,7 @@
             v-model="email"
             placeholder="Email Address"
             type="email"
-            class="rounded w-full px-2 py-1.5 border-2 focus:border-blue-600 focus:outline-blue-600 transition ease-in-out duration-150"
+            class="rounded w-full px-2 py-1.5 border-2 focus:border-teal-600 focus:outline-none transition ease-in-out duration-150"
             required
           />
         </div>
@@ -32,7 +32,7 @@
             v-model="password"
             type="password"
             placeholder="Password"
-            class="rounded w-full px-2 py-1.5 border-2 focus:border-blue-600 focus:outline-blue-600 transition ease-in-out duration-150"
+            class="rounded w-full px-2 py-1.5 border-2 focus:border-teal-600 focus:outline-none transition ease-in-out duration-150"
             required
           />
         </div>
@@ -66,7 +66,7 @@ export default defineComponent({
         notificationType.value = "warning";
         return;
       }
-      fetch("/authenticate", {
+      fetch(`${import.meta.env.VITE_SERVER_URL}/users/authenticate`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
