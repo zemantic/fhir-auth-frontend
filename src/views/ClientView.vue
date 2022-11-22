@@ -111,6 +111,11 @@
     <div class="rounded-md bg-white p-6 space-y-4">
       <Notification v-if="hasNotification" :message="notificationMessage" type="warning"></Notification>
       <h2 class="text-lg font-bold">Client Details</h2>
+      <div class="control" v-if="mode === 'patch'">
+        <label for="clientId" class="font-semibold text-sm">Client ID</label>
+        <input type="text" class="disabled:bg-gray-300 text-gray-600 block w-full rounded-md px-3 py-2 border-2 mt-1"
+          v-model="clientUUID" disabled>
+      </div>
       <div class="control">
         <label for="clientName" class="font-semibold text-sm">Client Name</label>
         <input ref="clientNameInput" v-model="clientName"
@@ -128,13 +133,20 @@
         }}</span>
       </div>
       <div class="control">
-        <label for="authendpoint" class="font-semibold text-sm">Public Key Endpoint</label>
+        <label for="authendpoint" class="font-semibold text-sm">Client Host Public Key Endpoint</label>
         <input ref="clientAuthEndpointInput" v-model="clientAuthEndpoint" type="text"
           class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
           placeholder="URL to access the public key for authentication. This has to same domain as the host address" />
         <span v-if="hasEndpointError" class="text-red-600 text-sm">{{
             endpointError
         }}</span>
+      </div>
+      <div class="control">
+        <label class="font-semibold text-sm" for="fhirServerEndpoint">FHIR Server Endpoint</label>
+        <input ref="fhirServerEndpointInput" v-model="fhirServerEndpoint" type="text"
+          class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
+          placeholder="FHIR server URL endpoint">
+        <span class="text-red-600 text-sm">{{ fhirServerEndpointError }}</span>
       </div>
       <div>
         <h2 class="text-lg font-bold mt-8 mb-4">
@@ -186,7 +198,8 @@
             </div>
             <div v-if="toggleResourceSelection"
               class="absolute shadow top-100 z-40 w-1/4 rounded max-h-select overflow-y-auto">
-              <div class="flex flex-col w-full">
+              <div class="flex flex-col w-full
+              ">
                 <div v-for="(item, index) in resourceList" :key="index"
                   class="cursor-pointer w-full border-gray-100 border-b hover:bg-teal-100">
                   <div
@@ -233,7 +246,8 @@
             </button>
           </div>
           <div class="flex items-center">
-            <button @click="addNewPrivilage()" class="rounded-md font-semibold px-3 py-2 bg-gray-100 hover:bg-gray-200">
+            <button @click="addNewPrivilage()"
+              class="rounded-md font-semibold px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white">
               Add Privilages
             </button>
           </div>
@@ -249,6 +263,7 @@
               <th class="py-2">Update Privilage</th>
               <th class="py-2">Delete Privilage</th>
               <th class="py-2">Search Privilage</th>
+              <th class="py-2">Actions</th>
             </tr>
           </thead>
           <tr v-for="(privilage, index) in privilages" :key="index" class="text-center">
@@ -270,13 +285,38 @@
             <td class="py-2 border">
               {{ privilage.privilages.search }}
             </td>
+            <td class="py-2 border">
+              <button class="bg-gray-200 rounded-md px-1.5 py-1.5 focus:bg-gray-400 hover:bg-gray-300"
+                @click="removePrivilage(index)">
+                <svg height="24" viewBox="0 0 48 48" width="24" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M12 38c0 2.21 1.79 4 4 4h16c2.21 0 4-1.79 4-4v-24h-24v24zm26-30h-7l-2-2h-10l-2 2h-7v4h28v-4z" />
+                  <path d="M0 0h48v48h-48z" fill="none" />
+                </svg>
+              </button>
+            </td>
           </tr>
         </table>
+      </div>
+      <h2 class="text-lg font-bold text-red-700">Danger Zone</h2>
+      <div class="control">
+        <div class="flex items-center space-x-2 mt-1">
+          <input type="checkbox" v-model="isActive"
+            class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5" />
+          <span class="font-semibold" v-if="isActive === true">
+            Active
+          </span>
+          <span class="font-semibold" v-if="isActive === false">
+            Deactive
+          </span>
+          <p class="text-sm text-gray-600">Deactivating will break all incoming requests to this client</p>
+        </div>
       </div>
       <div>
         <button :disabled="loading" class="bg-teal-600 rounded-lg text-white font-bold px-3 py-2 hover:bg-teal-700"
           @click="createClient()">
-          Create New Client
+          <span v-if="mode === 'patch'">Update Client</span>
+          <span v-if="mode === 'post'">Create New Client</span>
         </button>
         <LoadingSpinner v-if="loading"></LoadingSpinner>
       </div>
@@ -297,6 +337,7 @@ export default defineComponent({
 
     onMounted(async () => {
       if (route.params.id && route.params.id !== "create") {
+        mode.value = "patch"
         loading.value = true
         const client = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/client/${route.params.id}`)
 
@@ -307,16 +348,29 @@ export default defineComponent({
 
         if (client.status === 200) {
           const parseClient = await client.json()
+
+          clientId.value = parseClient.data.client.id
+          clientUUID.value = parseClient.data.client.clientId
+          isActive.value = parseClient.data.client.isActive
+          fhirServerEndpoint.value = parseClient.data.client.fhirEndpoint
+
           let parseClientPrivilages: Array<{
-            clientsId: number, create: boolean, delete: boolean, id: number, read: boolean,
+            id: number,
+            create: boolean,
+            delete: boolean,
+            read: boolean,
             search: boolean, update: boolean,
-            resource: { resourceName: string, id: number },
+            resource: {
+              resourceName: string,
+              id: number
+            },
             resourcesId: number,
           }> = parseClient.data.client.clientPrivilages
 
           let tempParseClientPrivilages: {
             resource: string;
             resourcesId: number;
+            id: number,
             privilages: {
               create: boolean;
               read: boolean;
@@ -325,9 +379,13 @@ export default defineComponent({
               search: boolean;
             };
           }[] = []
+
           parseClientPrivilages.forEach(element => {
             let tempPrivilage: {
-              resource: string, resourcesId: number, privilages: {
+              resource: string,
+              resourcesId: number,
+              id: number,
+              privilages: {
                 create: boolean,
                 read: boolean,
                 update: boolean,
@@ -337,6 +395,7 @@ export default defineComponent({
             } = {
               resource: element.resource.resourceName,
               resourcesId: element.resource.id,
+              id: element.id,
               privilages: {
                 create: element.create,
                 read: element.read,
@@ -346,8 +405,10 @@ export default defineComponent({
               }
             }
 
+            privilagesIdArray.push(element.resourcesId)
             tempParseClientPrivilages.push(tempPrivilage)
           });
+
           privilages.value = tempParseClientPrivilages
           clientName.value = parseClient.data.client.clientName
           clientHost.value = parseClient.data.client.clientHost
@@ -368,7 +429,9 @@ export default defineComponent({
       loading.value = false
     });
 
-    const privilages: Ref<
+
+    // privilages
+    let privilages: Ref<
       {
         resource: string;
         resourcesId: number;
@@ -381,22 +444,20 @@ export default defineComponent({
         };
       }[]
     > = ref([]);
-
-    const privilagesIdArray: Number[] = [];
-
-    let clientDetails = ref()
+    let privilagesIdArray: Number[] = [];
+    // mode edit or create
+    let mode = ref("post");
+    // fhir server endpointt
+    let fhirServerEndpoint = ref("")
+    let fhirServerEndpointError = ref("")
+    let hasFhirServerEndpointError = ref(false)
+    let fhirServerEndpointInput = ref()
+    // notifications
     let hasNotification = ref(false);
     let notificationMessage = ref();
+    // client details
     let clientName = ref();
-    let resource = ref();
-    let resourceId: Ref<null | number> = ref(null);
-    let resourceCreate = ref(false);
-    let resourceRead = ref(false);
-    let resourceUpdate = ref(false);
-    let resourceDelete = ref(false);
-    let resourceSearch = ref(false);
-    let toggleResourceSelection = ref(false);
-    let chevronUp = ref(false);
+    let clientId = ref();
     let clientNameInput = ref();
     let clientHostInput = ref();
     let clientAuthEndpointInput = ref();
@@ -404,9 +465,19 @@ export default defineComponent({
     let endpointError = ref("");
     let clientHostError = ref("");
     let hasClientHostError = ref(false);
-    let hasEndpointError = ref(false);
     let clientHost = ref("");
     let clientAuthEndpoint = ref("");
+    let hasEndpointError = ref(false);
+    let isActive = ref(true)
+    let clientUUID = ref("")
+    // resources
+    let resource = ref();
+    let resourceId: Ref<null | number> = ref(null);
+    let resourceCreate = ref(false);
+    let resourceRead = ref(false);
+    let resourceUpdate = ref(false);
+    let resourceDelete = ref(false);
+    let resourceSearch = ref(false);
     let resourceInput = ref();
     let resourceList: Ref<
       {
@@ -416,7 +487,9 @@ export default defineComponent({
         isActive: boolean;
       }[]
     > = ref([]);
-
+    // other
+    let toggleResourceSelection = ref(false);
+    let chevronUp = ref(false);
     let loading = ref(false)
 
     const addNewPrivilage = () => {
@@ -512,6 +585,15 @@ export default defineComponent({
         return;
       }
 
+      if (fhirServerEndpoint.value.trim().length === 0 || !isURL(fhirServerEndpoint.value)) {
+        hasNotification.value = true
+        notificationMessage.value = "Enter a valid FHIR server url"
+        hasFhirServerEndpointError.value = true
+        fhirServerEndpointError.value = "* Invalid FHIR server endpoint";
+        (fhirServerEndpointInput.value as HTMLInputElement).focus()
+        return;
+      }
+
       hasClientHostError.value = false;
 
       if (
@@ -552,15 +634,18 @@ export default defineComponent({
       loading.value = true
       // post payload to the server
       const post = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/client`, {
-        method: "post",
+        method: mode.value.toUpperCase(),
         headers: {
           "content-type": "application/json",
         },
         body: JSON.stringify({
+          clientsId: clientId.value,
           clientName: clientName.value,
           clientHost: clientHost.value,
           clientPublicKeyEndpoint: clientAuthEndpoint.value,
           privilages: privilages.value,
+          fhirEndpoint: fhirServerEndpoint.value,
+          isActive: isActive.value
         }),
       })
 
@@ -568,7 +653,11 @@ export default defineComponent({
       if (post.status === 200) {
         const response = await post.json();
         hasNotification.value = true;
-        notificationMessage.value = `Client successfully created. Client ID - ${response.data.client.clientId}`;
+        if (mode.value === 'patch') {
+          notificationMessage.value = 'Client successfully updated'
+        } else {
+          notificationMessage.value = `Client successfully created. Client ID - ${response.data.client.clientId}`;
+        }
       } else {
         hasNotification.value = true
         notificationMessage.value = "An error occured in creating client"
@@ -585,6 +674,12 @@ export default defineComponent({
       resourceDelete.value = false;
       resourceSearch.value = false;
     };
+
+    const removePrivilage = (index: number) => {
+      const resourcesId = privilages.value[index].resourcesId
+      privilagesIdArray.splice(privilagesIdArray.indexOf(resourcesId), 1)
+      privilages.value.splice(index, 1)
+    }
 
     return {
       clientName,
@@ -616,7 +711,15 @@ export default defineComponent({
       clientHostInput,
       clientAuthEndpointInput,
       resourceInput,
-      loading
+      loading,
+      fhirServerEndpoint,
+      fhirServerEndpointError,
+      hasFhirServerEndpointError,
+      fhirServerEndpointInput,
+      mode,
+      isActive,
+      clientUUID,
+      removePrivilage
     };
   },
   components: { Notification, LoadingSpinner },
