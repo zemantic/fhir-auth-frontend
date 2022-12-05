@@ -1,5 +1,6 @@
 <template>
   <Navbar />
+  <LoadingBar v-if="loading" />
   <div class="container mx-auto">
     <div class="rounded-md bg-white p-6 space-y-4">
       <Notification
@@ -338,7 +339,6 @@
           <span v-if="mode === 'patch'">Update Client</span>
           <span v-if="mode === 'post'">Create New Client</span>
         </button>
-        <LoadingSpinner v-if="loading"></LoadingSpinner>
       </div>
     </div>
   </div>
@@ -347,10 +347,11 @@
 <script lang="ts">
 import Notification from "@/components/Notification.vue";
 import Navbar from "@/components/Navbar.vue";
+import LoadingBar from "@/components/LoadingBar.vue";
+
+import { useRoute } from "vue-router";
 import { defineComponent, onMounted, ref } from "vue";
 import type { Ref } from "vue";
-import LoadingSpinner from "@/components/LoadingSpinner.vue";
-import { useRoute } from "vue-router";
 
 export default defineComponent({
   setup() {
@@ -751,6 +752,6 @@ export default defineComponent({
       removePrivilage,
     };
   },
-  components: { Notification, LoadingSpinner, Navbar },
+  components: { Notification, Navbar, LoadingBar },
 });
 </script>
