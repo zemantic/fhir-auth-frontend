@@ -1,4 +1,5 @@
 <template>
+  <LoadingBar v-if="isLoading"></LoadingBar>
   <div class="container mx-auto my-16">
     <div class="max-w-lg mx-auto space-y-2 p-6 rounded-lg bg-white border">
       <div class="flex justify-center">
@@ -38,7 +39,8 @@
         </div>
         <button
           @click.prevent="login()"
-          class="rounded-md px-3 py-2 font-bold bg-teal-600 hover:bg-teal-700 w-32 text-white focus:outline-none"
+          :disabled="isLoading"
+          class="rounded-md px-3 py-2 font-bold bg-teal-600 hover:bg-teal-700 w-32 text-white focus:outline-none disabled:bg-teal-500"
         >
           Login
         </button>
@@ -50,15 +52,23 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import Notification from "@/components/Notification.vue";
+import LoadingBar from "@/components/LoadingBar.vue";
+import { KeyStore } from "@/store/keyStore";
+import { UserStore } from "@/store/userStore";
 
 export default defineComponent({
   setup() {
+    const keyStore = KeyStore();
+    const userStore = UserStore();
+
     const password = ref(undefined);
     const email = ref(undefined);
     const hasNotification = ref(false);
     const notificationMessage = ref("");
     const notificationType = ref("success");
-    const login = () => {
+    const isLoading = ref(false);
+
+    const login = async () => {
       if (!email.value || !password.value) {
         hasNotification.value = true;
         notificationMessage.value =
@@ -66,20 +76,39 @@ export default defineComponent({
         notificationType.value = "warning";
         return;
       }
-      fetch(`${import.meta.env.VITE_SERVER_URL}/users/authenticate`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.value,
-          password: password.value,
-        }),
-      }).catch((e) => {
+      isLoading.value = true;
+      const request = await fetch(
+        `${import.meta.env.VITE_SERVER_URL}/user/login`,
+        {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email.value,
+            password: password.value,
+          }),
+        }
+      );
+
+      if (!request.ok) {
         hasNotification.value = true;
-        notificationMessage.value = "An error occured, please try again later";
-        notificationType.value = "danger";
-      });
+        notificationMessage.value =
+          "An error occured while logging in, please try again";
+      }
+
+      if (request.status === 400) {
+        hasNotification.value = true;
+        notificationMessage.value = "Invalid username or password";
+      }
+
+      if (request.status === 200) {
+        const payload = await request.json();
+        keyStore.setKey(payload.data.token);
+        userStore.setUser(payload.data.user.name, payload.data.user.email);
+        console.log(keyStore.key);
+      }
+      isLoading.value = false;
     };
     return {
       email,
@@ -88,8 +117,9 @@ export default defineComponent({
       hasNotification,
       notificationMessage,
       notificationType,
+      isLoading,
     };
   },
-  components: { Notification },
+  components: { Notification, LoadingBar },
 });
 </script>
