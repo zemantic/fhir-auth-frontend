@@ -31,39 +31,30 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted, ref } from "vue";
+<script lang="ts" setup>
+import { defineComponent, onMounted, ref, computed } from "vue";
+const props = defineProps(["message", "modelData"]);
+const emit = defineEmits(["callbackEvent", "hideModel"]);
 
-export default defineComponent({
-  props: ["message", "callbackReturn", "visible"],
-  emits: ["callbackEvent"],
-  setup(props, ctx) {
-    onMounted(() => {
-      visible.value = props.visible;
-    });
-
-    let visible = ref(true);
-    let userInput = ref("");
-    const confirmAction = () => {
-      if (
-        (props.message as string).toLowerCase() ===
-        userInput.value.toLowerCase()
-      ) {
-        ctx.emit("callbackEvent", props.callbackReturn);
-        hide();
-      }
-    };
-
-    const hide = () => {
-      visible.value = false;
-    };
-
-    return {
-      confirmAction,
-      userInput,
-      hide,
-      visible,
-    };
+const visible = computed({
+  get() {
+    return props.modelData.visible;
   },
+  // setter
+  set(newValue: boolean) {},
 });
+
+let userInput = ref("");
+const confirmAction = () => {
+  if (
+    (props.message as string).toLowerCase() === userInput.value.toLowerCase()
+  ) {
+    emit("callbackEvent", props.modelData.callbackReturn);
+    hide();
+  }
+};
+
+const hide = () => {
+  emit("hideModel");
+};
 </script>
