@@ -55,9 +55,11 @@ import Notification from "@/components/Notification.vue";
 import LoadingBar from "@/components/LoadingBar.vue";
 import { KeyStore } from "@/store/keyStore";
 import { UserStore } from "@/store/userStore";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   setup() {
+    const router = useRouter();
     const keyStore = KeyStore();
     const userStore = UserStore();
 
@@ -106,7 +108,8 @@ export default defineComponent({
         const payload = await request.json();
         keyStore.setKey(payload.data.token);
         userStore.setUser(payload.data.user.name, payload.data.user.email);
-        console.log(keyStore.key);
+        document.cookie = `token=${payload.data.token};max-age=7200;path=/`;
+        return router.push({ name: "Dashboard" });
       }
       isLoading.value = false;
     };
