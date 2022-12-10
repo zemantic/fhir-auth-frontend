@@ -349,20 +349,27 @@ import Notification from "@/components/Notification.vue";
 import Navbar from "@/components/Navbar.vue";
 import LoadingBar from "@/components/LoadingBar.vue";
 
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { defineComponent, onMounted, ref } from "vue";
 import type { Ref } from "vue";
+import { KeyStore } from "@/store/keyStore";
 
 export default defineComponent({
   setup() {
+    const router = useRouter();
     const route = useRoute();
-
+    const keyStore = KeyStore();
     onMounted(async () => {
       if (route.params.id && route.params.id !== "create") {
         mode.value = "patch";
         loading.value = true;
         const client = await fetch(
-          `${import.meta.env.VITE_SERVER_URL}/api/client/${route.params.id}`
+          `${import.meta.env.VITE_SERVER_URL}/api/client/${route.params.id}`,
+          {
+            headers: new Headers({
+              authorization: `bearer ${keyStore.key}`,
+            }),
+          }
         );
 
         if (!client.ok) {
@@ -440,13 +447,20 @@ export default defineComponent({
           clientHost.value = parseClient.data.client.clientHost;
           clientAuthEndpoint.value =
             parseClient.data.client.clientPublicKeyEndpoint;
+        } else if (client.status === 401) {
+          return router.push({ name: "Login" });
         } else {
           hasNotification.value = true;
           notificationMessage.value = "Error getting client details";
         }
       }
       const resources = await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/resources/4.0`
+        `${import.meta.env.VITE_SERVER_URL}/api/resources/4.0`,
+        {
+          headers: new Headers({
+            authorization: `bearer ${keyStore.key}`,
+          }),
+        }
       );
       if (resources.status === 200) {
         const resourceJSON = await resources.json();
@@ -665,9 +679,10 @@ export default defineComponent({
         `${import.meta.env.VITE_SERVER_URL}/api/client`,
         {
           method: mode.value.toUpperCase(),
-          headers: {
+          headers: new Headers({
+            authorization: `bearer ${keyStore.key}`,
             "content-type": "application/json",
-          },
+          }),
           body: JSON.stringify({
             clientsId: clientId.value,
             clientName: clientName.value,
@@ -688,6 +703,8 @@ export default defineComponent({
         } else {
           notificationMessage.value = `Client successfully created. Client ID - ${response.data.client.clientId}`;
         }
+      } else if (post.status === 401) {
+        return router.push({ name: "Login" });
       } else {
         hasNotification.value = true;
         notificationMessage.value = "An error occured in creating client";
