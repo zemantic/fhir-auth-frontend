@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineComponent, onMounted, ref, computed } from "vue";
+import { ref, computed } from "vue";
 const props = defineProps(["message", "modelData"]);
 const emit = defineEmits(["callbackEvent", "hideModel"]);
 
