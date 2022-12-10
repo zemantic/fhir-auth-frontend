@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import ClientView from "../views/ClientView.vue";
 import DashboardView from "@/views/DashboardView.vue";
+import { KeyStore } from "@/store/keyStore";
+import FhirServerView from "@/views/FhirServerView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,7 +25,7 @@ const router = createRouter({
     },
     {
       path: "/dashboard",
-      name: "dashboard",
+      name: "Dashboard",
       component: DashboardView,
     },
     {
@@ -36,10 +38,35 @@ const router = createRouter({
     },
     {
       path: "/login",
-      name: "login",
+      name: "Login",
       component: () => import("../views/LoginView.vue"),
     },
+    {
+      path: "/dashboard/fhir-server/register",
+      name: "FhirRegister",
+      component: FhirServerView,
+    },
   ],
+});
+
+router.beforeEach((to, from, next) => {
+  const keyStore = KeyStore();
+  const tokenCookie = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith("token="))
+    ?.split("=")[1];
+
+  let authenticated = false;
+
+  if (!tokenCookie) {
+    authenticated = false;
+  } else {
+    authenticated = true;
+    keyStore.setKey(tokenCookie);
+  }
+
+  if (to.name !== "Login" && !authenticated) next({ name: "Login" });
+  else next();
 });
 
 export default router;
