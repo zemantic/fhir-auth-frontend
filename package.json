@@ -9,6 +9,13 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@flavorly/vanilla-components": "^0.7.10",
+    "@headlessui/vue": "^1.7.5",
+    "@popperjs/core": "^2.11.6",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.3",
+    "@tailwindcss/typography": "^0.5.8",
+    "libphonenumber-js": "^1.10.15",
     "pinia": "^2.0.27",
     "vue": "^3.2.38",
     "vue-router": "^4.1.5"

@@ -1,8 +1,23 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require(`tailwindcss/colors`);
+
 module.exports = {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx,vue}"],
+  darkMode: "class",
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx,vue}",
+    "./node_modules/@flavorly/vanilla-components/dist/components/**/*.{ts,vue}",
+  ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: colors.teal,
+      },
+    },
   },
-  plugins: [],
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("@tailwindcss/aspect-ratio"),
+    require("@tailwindcss/forms"),
+  ],
 };
