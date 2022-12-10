@@ -172,9 +172,11 @@ import Notification from "@/components/Notification.vue";
 import Navbar from "@/components/Navbar.vue";
 import Model from "@/components/Model.vue";
 import LoadingBar from "@/components/LoadingBar.vue";
+import { KeyStore } from "@/store/keyStore";
 
 export default defineComponent({
   setup() {
+    const keyStore = KeyStore();
     let clientList: Ref<
       {
         clientName: string;
@@ -198,7 +200,12 @@ export default defineComponent({
       const clients = await fetch(
         `${import.meta.env.VITE_SERVER_URL}/api/get-all-clients?skip=${
           clientsPage.value
-        }`
+        }`,
+        {
+          headers: new Headers({
+            authorization: `bearer ${keyStore.key}`,
+          }),
+        }
       ).catch((e) => {
         return new Error(e);
       });
