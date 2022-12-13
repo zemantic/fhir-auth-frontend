@@ -42,6 +42,21 @@
           >* Client name is required</span
         > -->
       </div>
+
+      <div class="control">
+        <label for="description" class="font-semibold text-sm"
+          >Client Description</label
+        >
+        <textarea
+          v-model="clientDescription"
+          name="description"
+          id="description"
+          class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
+          cols="30"
+          rows="5"
+        ></textarea>
+      </div>
+
       <div class="control">
         <label class="font-semibold text-sm" for="host">Client Host</label>
         <Input
@@ -61,9 +76,10 @@
           clientHostError
         }}</span> -->
       </div>
+
       <div class="control">
         <label for="authendpoint" class="font-semibold text-sm"
-          >Client Host Public Key Endpoint</label
+          >Client Public Key Endpoint</label
         >
         <!-- <input
           ref="clientAuthEndpointInput"
@@ -364,6 +380,51 @@
           Inactivating will disable all incoming requests
         </p>
       </div>
+      <div class="control">
+        <label for="enableBatchRequest" class="font-semibold"
+          >Enable Batch | Transaction Requests</label
+        >
+        <div class="flex items-center space-x-2 mt-2">
+          <input
+            id="enableBatchRequest"
+            type="checkbox"
+            v-model="enableBatchRequest"
+            class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5"
+          />
+          <span class="font-semibold" v-if="enableBatchRequest === true">
+            Enabled
+          </span>
+          <span class="font-semibold" v-if="enableBatchRequest === false">
+            Disabled
+          </span>
+          <p class="text-sm text-gray-600">
+            Please read documentation if you are not sure about this setting
+          </p>
+        </div>
+      </div>
+      <div class="control">
+        <label for="enableGlobalSearch" class="font-semibold"
+          >Enable Global Search</label
+        >
+        <div class="flex items-center space-x-2 mt-2">
+          <input
+            id="enableGlobalSearch"
+            type="checkbox"
+            v-model="enableGlobalSearch"
+            class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5"
+          />
+          <span class="font-semibold" v-if="enableGlobalSearch === true">
+            Enabled
+          </span>
+          <span class="font-semibold" v-if="enableGlobalSearch === false">
+            Disabled
+          </span>
+          <p class="text-sm text-gray-600">
+            Please read documentation if you are not sure about this setting
+          </p>
+        </div>
+      </div>
+
       <div>
         <Button
           :disabled="loading"
