@@ -330,8 +330,12 @@
       </div>
       <h2 class="text-lg font-bold text-red-700">Danger Zone</h2>
       <div class="control">
-        <div class="flex items-center space-x-2 mt-1">
+        <label for="isActive" class="font-semibold"
+          >Enable or Disable Client</label
+        >
+        <div class="flex items-center space-x-2 mt-2">
           <input
+            id="isActive"
             type="checkbox"
             v-model="isActive"
             class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5"
@@ -345,6 +349,51 @@
           </p>
         </div>
       </div>
+      <div class="control">
+        <label for="enableBatchRequest" class="font-semibold"
+          >Enable Batch | Transaction Requests</label
+        >
+        <div class="flex items-center space-x-2 mt-2">
+          <input
+            id="enableBatchRequest"
+            type="checkbox"
+            v-model="enableBatchRequest"
+            class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5"
+          />
+          <span class="font-semibold" v-if="enableBatchRequest === true">
+            Enabled
+          </span>
+          <span class="font-semibold" v-if="enableBatchRequest === false">
+            Disabled
+          </span>
+          <p class="text-sm text-gray-600">
+            Please read documentation if you are not sure about this setting
+          </p>
+        </div>
+      </div>
+      <div class="control">
+        <label for="enableGlobalSearch" class="font-semibold"
+          >Enable Global Search</label
+        >
+        <div class="flex items-center space-x-2 mt-2">
+          <input
+            id="enableGlobalSearch"
+            type="checkbox"
+            v-model="enableGlobalSearch"
+            class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5"
+          />
+          <span class="font-semibold" v-if="enableGlobalSearch === true">
+            Enabled
+          </span>
+          <span class="font-semibold" v-if="enableGlobalSearch === false">
+            Disabled
+          </span>
+          <p class="text-sm text-gray-600">
+            Please read documentation if you are not sure about this setting
+          </p>
+        </div>
+      </div>
+
       <div>
         <button
           :disabled="loading"
@@ -393,6 +442,7 @@ export default defineComponent({
           clientUUID.value = parseClient.data.client.clientId;
           isActive.value = parseClient.data.client.isActive;
           fhirServerEndpoint.value = parseClient.data.client.fhirEndpoint;
+          clientDescription.value = parseClient.data.client.clientDescription;
 
           let parseClientPrivilages: Array<{
             id: number;
@@ -497,6 +547,9 @@ export default defineComponent({
     // client details
     let clientName = ref();
     let clientId = ref();
+    let clientDescription = ref("");
+    let enableBatchRequest = ref(false);
+    let enableGlobalSearch = ref(false);
     let clientNameInput = ref();
     let clientHostInput = ref();
     let clientAuthEndpointInput = ref();
@@ -526,15 +579,12 @@ export default defineComponent({
         isActive: boolean;
       }[]
     > = ref([]);
-    let clientDescription = ref("");
-    let enableBatchRequest = ref(false);
-    let enableGlobalSearch = ref(false);
-    let step = ref(1);
 
     // other
     let toggleResourceSelection = ref(false);
     let chevronUp = ref(false);
     let loading = ref(false);
+    let step = ref(1);
 
     const addNewPrivilage = () => {
       if (resourceId.value === null) {
@@ -694,8 +744,8 @@ export default defineComponent({
             clientPublicKeyEndpoint: clientAuthEndpoint.value,
             privilages: privilages.value,
             clientDescription: clientDescription.value,
-            enablePublicSearch: false,
-            enableBatchRequest: false,
+            enableGlobalSearch: false,
+            enableBatchRequests: false,
             fhirEndpoint: fhirServerEndpoint.value,
             isActive: isActive.value,
           }),
