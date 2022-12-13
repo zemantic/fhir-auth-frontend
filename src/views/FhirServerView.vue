@@ -128,6 +128,8 @@ const addServer = async () => {
 
   if (request.status === 200) {
     const parseServer = await request.json();
+    hasNotification.value = true;
+    notificationMessage.value = "New FHIR server added successfully";
   }
 
   loading.value = false;
