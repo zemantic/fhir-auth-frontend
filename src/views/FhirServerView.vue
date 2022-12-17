@@ -56,6 +56,7 @@
           label="Add FHIR Server"
           variant="primary"
           :loading="loading"
+          :disabled="loading"
         />
       </div>
     </div>
@@ -63,12 +64,15 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import type { Ref } from "vue";
 import { KeyStore } from "@/store/keyStore";
+import { useRoute } from "vue-router";
 import { Input, Textarea, Button, Toggle } from "@flavorly/vanilla-components";
 import Navbar from "@/components/Navbar.vue";
 import LoadingBar from "@/components/LoadingBar.vue";
 
+const route = useRoute();
 const loading = ref(false);
 const hasNotification = ref(false);
 const notificationMessage = ref("");
@@ -85,6 +89,8 @@ const fhirServerEndpointHasError = ref(false);
 const fhirServerEndpointErrorMessage = ref("");
 
 const fhirServerIsActive = ref(true);
+const mode = ref("post");
+const params: Ref<string | string[]> = ref("");
 
 const addServer = async () => {
   loading.value = true;
@@ -105,9 +111,9 @@ const addServer = async () => {
   }
 
   const request = await fetch(
-    `${import.meta.env.VITE_SERVER_URL}/api/fhir-server`,
+    `${import.meta.env.VITE_SERVER_URL}/api/fhir-server/${params.value}`,
     {
-      method: "POST",
+      method: mode.value.toUpperCase(),
       headers: new Headers({
         authorization: `bearer ${keyStore.key}`,
         "content-type": "application/json",
@@ -134,6 +140,46 @@ const addServer = async () => {
 
   loading.value = false;
 };
+
+onMounted(async () => {
+  if (route.params.id && route.params.id !== "register") {
+    params.value = route.params.id;
+    mode.value = "patch";
+    loading.value = true;
+    const server = await fetch(
+      `${import.meta.env.VITE_SERVER_URL}/api/fhir-server/${route.params.id}`,
+      {
+        headers: new Headers({
+          authorization: `bearer ${keyStore.key}`,
+        }),
+      }
+    );
+
+    if (!server.ok) {
+      notificationMessage.value =
+        "An error occured in getting FHIR server details";
+      hasNotification.value = true;
+      return;
+    }
+
+    if (server.status !== 200) {
+      notificationMessage.value =
+        "An error occured in getting FHIR server details";
+      hasNotification.value = true;
+      return;
+    }
+
+    const parseFhirServer = await server.json();
+    fhirServerDescription.value = parseFhirServer.data.fhirServer.description;
+    fhirServerEndpoint.value =
+      parseFhirServer.data.fhirServer.fhirServerEndpoint;
+    fhirServerName.value = parseFhirServer.data.fhirServer.fhirServerName;
+    fhirServerIsActive.value = parseFhirServer.data.fhirServer.isActive;
+    fhirServerDescription.value =
+      parseFhirServer.data.fhirServer.fhirServerDescription;
+    loading.value = false;
+  }
+});
 
 const isURL = (url: string): boolean => {
   var urlPattern = new RegExp(

@@ -46,6 +46,11 @@ const router = createRouter({
       name: "FhirRegister",
       component: FhirServerView,
     },
+    {
+      path: "/dashboard/fhir-server/:id",
+      name: "FhirServerEdit",
+      component: FhirServerView,
+    },
   ],
 });
 
