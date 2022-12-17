@@ -77,7 +77,7 @@
               <span>{{ item.clientHost }}</span>
             </td>
             <td class="py-3 px-6 text-center">
-              <span>{{ item.fhirEndpoint }}</span>
+              <span>{{ item.fhirServer.fhirServerEndpoint }}</span>
             </td>
             <td class="py-3 px-6 text-center">
               <span
@@ -184,6 +184,7 @@ export default defineComponent({
         clientHost: string;
         isActive: boolean;
         clientId: string;
+        fhirServer: { fhirServerEndpoint: string };
       }[]
     > = ref([]);
     let isLoading = ref(true);
