@@ -47,14 +47,12 @@
         <label for="description" class="font-semibold text-sm"
           >Client Description</label
         >
-        <textarea
+        <Textarea
           v-model="clientDescription"
           name="description"
           id="description"
-          class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
-          cols="30"
-          rows="5"
-        ></textarea>
+          placeHolder="Add a description about this client application for reference"
+        />
       </div>
 
       <div class="control">
@@ -385,11 +383,10 @@
           >Enable Batch | Transaction Requests</label
         >
         <div class="flex items-center space-x-2 mt-2">
-          <input
+          <Toggle
             id="enableBatchRequest"
-            type="checkbox"
+            :checked="enableBatchRequest"
             v-model="enableBatchRequest"
-            class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5"
           />
           <span class="font-semibold" v-if="enableBatchRequest === true">
             Enabled
@@ -407,11 +404,10 @@
           >Enable Global Search</label
         >
         <div class="flex items-center space-x-2 mt-2">
-          <input
+          <Toggle
             id="enableGlobalSearch"
-            type="checkbox"
+            :checked="enableGlobalSearch"
             v-model="enableGlobalSearch"
-            class="appearance-none w-9 focus:outline-none checked:bg-blue-300 h-5 bg-gray-300 rounded-full before:inline-block before:rounded-full before:bg-blue-500 before:h-4 before:w-4 checked:before:translate-x-full shadow-inner transition-all duration-300 before:ml-0.5"
           />
           <span class="font-semibold" v-if="enableGlobalSearch === true">
             Enabled
@@ -455,7 +451,13 @@ import { useRoute, useRouter } from "vue-router";
 import { defineComponent, onMounted, ref } from "vue";
 import type { Ref } from "vue";
 import { KeyStore } from "@/store/keyStore";
-import { Button, Input, Select, Toggle } from "@flavorly/vanilla-components";
+import {
+  Button,
+  Input,
+  Select,
+  Textarea,
+  Toggle,
+} from "@flavorly/vanilla-components";
 
 const router = useRouter();
 const route = useRoute();
@@ -476,6 +478,7 @@ onMounted(async () => {
     if (!client.ok) {
       notificationMessage.value = "An error occured in getting client details";
       hasNotification.value = true;
+      return;
     }
 
     if (client.status === 200) {
@@ -646,6 +649,9 @@ let clientAuthEndpoint = ref("");
 let hasEndpointError = ref(false);
 let isActive = ref(true);
 let clientUUID = ref("");
+let clientDescription = ref("");
+let enableGlobalSearch = ref(false);
+let enableBatchRequest = ref(false);
 // resources
 let resource = ref();
 let resourceId: Ref<null | number> = ref(null);
@@ -819,6 +825,9 @@ const createClient = async () => {
       privilages: privilages.value,
       fhirEndpoint: fhirServerEndpoint.value,
       isActive: isActive.value,
+      enableBatchRequests: enableBatchRequest.value,
+      enableGlobalSearch: enableGlobalSearch.value,
+      clientDescription: clientDescription.value,
     }),
   });
 
