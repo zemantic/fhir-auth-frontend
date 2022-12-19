@@ -58,6 +58,14 @@
           :loading="loading"
           :disabled="loading"
         />
+
+        <Button
+          @click="deleteServer()"
+          label="Delete Server"
+          variant="danger"
+          :loading="loading"
+          :disabled="loading"
+        />
       </div>
     </div>
   </div>
@@ -71,6 +79,7 @@ import { useRoute } from "vue-router";
 import { Input, Textarea, Button, Toggle } from "@flavorly/vanilla-components";
 import Navbar from "@/components/Navbar.vue";
 import LoadingBar from "@/components/LoadingBar.vue";
+import { keys } from "lodash";
 
 const route = useRoute();
 const loading = ref(false);
@@ -139,6 +148,36 @@ const addServer = async () => {
   }
 
   loading.value = false;
+};
+
+const deleteServer = async () => {
+  loading.value = true;
+  const request = await fetch(
+    `${import.meta.env.VITE_SERVER_URL}/api/fhir-server/${route.params.id}`,
+    {
+      method: "DELETE",
+      headers: new Headers({
+        authorization: `bearer ${keyStore.key}`,
+      }),
+    }
+  );
+
+  if (!request.ok) {
+    notificationMessage.value =
+      "An unexpected error occured in deleting server";
+    hasNotification.value = true;
+    loading.value = false;
+    return;
+  }
+
+  if (request.status !== 200) {
+    hasNotification.value = true;
+    notificationMessage.value = `An unexpected error occured when deleting server`;
+    return;
+  }
+
+  hasNotification.value = true;
+  notificationMessage.value = "Server successfully deleted";
 };
 
 onMounted(async () => {
