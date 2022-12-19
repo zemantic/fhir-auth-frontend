@@ -199,12 +199,12 @@ export default defineComponent({
 
     onMounted(async () => {
       const clients = await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/get-all-clients?skip=${
+        `${import.meta.env.VITE_SERVER_URL}/api/get-all-clients?limit=10&skip=${
           clientsPage.value
         }`,
         {
           headers: new Headers({
-            authorization: `bearer ${keyStore.key}`,
+            authorization: `bearer ${keyStore.getKey}`,
           }),
         }
       ).catch((e) => {
@@ -228,7 +228,6 @@ export default defineComponent({
       }
 
       const parseClients = await clients.json();
-      console.log(parseClients.data);
       clientList.value = parseClients.data.clients;
       isLoading.value = false;
     });
@@ -240,6 +239,9 @@ export default defineComponent({
         }`,
         {
           method: "DELETE",
+          headers: new Headers({
+            authorization: `bearer ${keyStore.getKey}`,
+          }),
         }
       );
 
@@ -260,7 +262,6 @@ export default defineComponent({
     };
 
     const hideModel = () => {
-      console.log("hidden");
       modelData.value.visible = false;
     };
 
