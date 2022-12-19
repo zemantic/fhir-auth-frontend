@@ -62,13 +62,15 @@
         </svg>
       </div>
       <h1 class="text-3xl font-bold text-center">FHIR Auth</h1>
-      <h1 class="text-2xl font-light text-center">Login to dashboard</h1>
+      <h1 class="text-2xl font-light text-center">
+        Login to FHIRA Auth Dashboard
+      </h1>
       <Notification
         v-if="hasNotification"
         :message="notificationMessage"
         :type="notificationType"
       />
-      <form class="space-y-3">
+      <form @submit.prevent="login" method="POST" class="space-y-3">
         <div class="control space-y-1.5">
           <label for="email" class="block font-semibold text-gray-700"
             >Email</label
@@ -81,25 +83,11 @@
             :errors="inputEmailError"
             :hasErrors="hasInputEmailError"
           />
-          <!-- <input
-            v-model="email"
-            placeholder="Email Address"
-            type="email"
-            class="rounded w-full px-2 py-1.5 border-2 focus:border-teal-600 focus:outline-none transition ease-in-out duration-150"
-            required
-          /> -->
         </div>
         <div class="control space-y-1.5">
           <label for="password" class="block font-semibold text-gray-700"
             >Password</label
           >
-          <!-- <input
-            v-model="password"
-            type="password"
-            placeholder="Password"
-            class="rounded w-full px-2 py-1.5 border-2 focus:border-teal-600 focus:outline-none transition ease-in-out duration-150"
-            required
-          /> -->
           <Input
             placeholder="Password"
             v-model="password"
@@ -109,13 +97,6 @@
             :hasErrors="hasInputPasswordError"
           />
         </div>
-        <!-- <button
-          @click.prevent="login()"
-          :disabled="isLoading"
-          class="rounded-md px-3 py-2 font-bold bg-teal-600 hover:bg-teal-700 w-32 text-white focus:outline-none disabled:bg-teal-500"
-        >
-          Login
-        </button> -->
         <Button
           @click.prevent="login()"
           label="Login"
