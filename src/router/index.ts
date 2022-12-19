@@ -4,6 +4,8 @@ import ClientView from "../views/ClientView.vue";
 import DashboardView from "@/views/DashboardView.vue";
 import { KeyStore } from "@/store/keyStore";
 import FhirServerView from "@/views/FhirServerView.vue";
+import ClientList from "@/views/ClientList.vue";
+import ServerList from "@/views/ServerList.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,6 +52,16 @@ const router = createRouter({
       path: "/dashboard/fhir-server/:id",
       name: "FhirServerEdit",
       component: FhirServerView,
+    },
+    {
+      path: "/dashboard/clients",
+      name: "ClientList",
+      component: ClientList,
+    },
+    {
+      path: "/dashboard/servers",
+      name: "ServerList",
+      component: ServerList,
     },
   ],
 });
