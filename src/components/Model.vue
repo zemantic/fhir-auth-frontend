@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="visible"
-    class="bg-slate-800 bg-opacity-50 flex justify-center items-center absolute top-0 right-0 bottom-0 left-0"
+    class="bg-slate-800 bg-opacity-50 z-50 flex justify-center items-center absolute top-0 right-0 bottom-0 left-0"
   >
     <div class="bg-white px-16 py-14 rounded-md text-center">
       <h1 class="text-xl mb-1 font-bold text-slate-500">Confirm your action</h1>
