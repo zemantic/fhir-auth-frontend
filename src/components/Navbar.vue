@@ -208,6 +208,19 @@
             </a>
             <div class="block relative"></div>
           </div>
+          <div class="flex mr-4 items-center">
+            <a
+              class="inline-block py-2 px-5 bg-teal-500 text-white font-semibold hover:bg-teal-600 rounded-full"
+              href="/dashboard/fhir-server/register"
+            >
+              <div
+                class="flex items-center relative cursor-pointer whitespace-nowrap"
+              >
+                Add Server
+              </div>
+            </a>
+            <div class="block relative"></div>
+          </div>
           <div class="block">
             <div class="inline relative">
               <DropdownMenu v-model="dropDownValue" text="Options">
