@@ -173,10 +173,15 @@
         </tr>
       </tbody>
     </table>
-    <div class="mt-4">
-      <Button label="Previous" @click="getPreviousClients()" />
-      <span class="font-semibold px-2">{{ page + 1 }}</span>
-      <Button label="Next" @click="getNextClients()" />
+    <Skeleton class="mt-4" :count="3" v-if="isLoading" />
+    <div class="mt-4 flex items-center">
+      <Button
+        :disabled="isLoading"
+        label="Previous"
+        @click="getPreviousClients()"
+      />
+      <span class="font-semibold mx-4">{{ page + 1 }}</span>
+      <Button :disabled="isLoading" label="Next" @click="getNextClients()" />
     </div>
   </div>
 </template>
@@ -190,7 +195,7 @@ import Navbar from "@/components/Navbar.vue";
 import Model from "@/components/Model.vue";
 import Notification from "@/components/Notification.vue";
 import { KeyStore } from "@/store/keyStore";
-import { Button, Input } from "@flavorly/vanilla-components";
+import { Button, Input, Skeleton } from "@flavorly/vanilla-components";
 // variables
 let clientList: Ref<
   {
@@ -269,8 +274,9 @@ const getNextClients = () => {
 // get the clients of the current page
 const getClients = async () => {
   isLoading.value = true;
+  clientList.value = [];
   const request = await fetch(
-    `${import.meta.env.VITE_SERVER_URL}/get-all-client?skip=${page.value}`,
+    `${import.meta.env.VITE_SERVER_URL}/api/get-all-clients?skip=${page.value}`,
     {
       headers: new Headers({
         authorization: `bearer ${keyStore.getKey}`,
@@ -293,25 +299,7 @@ const getClients = async () => {
 
 // loads the initial clinets on page load
 onMounted(async () => {
-  isLoading.value = true;
-  const clients = await fetch(
-    `${import.meta.env.VITE_SERVER_URL}/api/get-all-clients?skip=${page.value}`,
-    {
-      headers: new Headers({
-        authorization: `bearer ${keyStore.getKey}`,
-      }),
-    }
-  );
-  if (!clients.ok || clients.status !== 200) {
-    hasNotification.value = true;
-    notificationMessage.value =
-      "An unexpected error occred in getting clients. Please try later.";
-    return;
-  }
-
-  const parseClients = await clients.json();
-  clientList.value = parseClients.data.clients;
-  isLoading.value = false;
+  getClients();
 });
 
 // triggers the model to delete client confirmation
