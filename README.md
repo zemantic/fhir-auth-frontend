@@ -1,35 +1,37 @@
-# front-end
+# FHIR Auth Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+![GitHub](https://img.shields.io/github/license/zemantic/fhir-auth-frontend?style=flat-square)
+![GitHub issues](https://img.shields.io/github/issues/zemantic/fhir-auth-frontend?style=flat-square)
 
-## Recommended IDE Setup
+This repository is for development of FHIR Auth server's frontend.
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+Read more about FHIR Auth server
 
-## Type Support for `.vue` Imports in TS
+- Repositroy - https://github.com/zemantic/fhir-auth
+- Website - https://zemantic.co/fhir-auth
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
+FHIR Auth is a robust authenthication and authorization server to be used alongside with a FHIR server.
 
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
+Documentation can be found for FHIR auth server and FHIR auth frontend here - https://zemantic.co/docs/
 
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
+## Installation
 
-## Customize configuration
+### Clone respositroy
 
-See [Vite Configuration Reference](https://vitejs.dev/config/).
+```bash
+  git clone https://github.com/zemantic/fhir-auth-frontend
+  cd fhir-auth-frontend
+```
 
-## Project Setup
+### Install dependencies
 
-```sh
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### Run with npm
 
-```sh
+```bash
 npm run dev
 ```
 
@@ -38,3 +40,9 @@ npm run dev
 ```sh
 npm run build
 ```
+
+More details about setting up FHIR Auth server and frontend can be found in documentation page
+
+## Tech Stack
+
+FHIR Auth frontend is developed with Vue3 and ViteJs.
