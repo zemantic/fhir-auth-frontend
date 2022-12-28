@@ -1,6 +1,13 @@
 <template>
   <Navbar />
   <LoadingBar v-if="loading" />
+  <Model
+    message="Delete"
+    @hide-model="hideModel"
+    @callback-event="deleteServer"
+    :modelData="modelData"
+  />
+
   <div class="container mx-auto">
     <div class="rounded-md bg-white p-6 space-y-4">
       <h2 class="text-lg font-bold">FHIR Server Details</h2>
@@ -50,9 +57,9 @@
         <span class="font-semibold" v-if="fhirServerIsActive">Active</span>
       </div>
 
-      <div>
+      <div class="space-x-2">
         <Button
-          @click="addServer()"
+          @click="triggerModel(params)"
           label="Add FHIR Server"
           variant="primary"
           :loading="loading"
@@ -62,7 +69,7 @@
         <Button
           @click="deleteServer()"
           label="Delete Server"
-          variant="danger"
+          variant="error"
           :loading="loading"
           :disabled="loading"
         />
@@ -78,6 +85,7 @@ import { KeyStore } from "@/store/keyStore";
 import { useRoute } from "vue-router";
 import { Input, Textarea, Button, Toggle } from "@flavorly/vanilla-components";
 import Navbar from "@/components/Navbar.vue";
+import Model from "@/components/Model.vue";
 import LoadingBar from "@/components/LoadingBar.vue";
 import { keys } from "lodash";
 
@@ -96,10 +104,24 @@ const fhirServerDescription = ref("");
 const fhirServerEndpoint = ref("");
 const fhirServerEndpointHasError = ref(false);
 const fhirServerEndpointErrorMessage = ref("");
+const serverId = ref("");
 
 const fhirServerIsActive = ref(true);
 const mode = ref("post");
 const params: Ref<string | string[]> = ref("");
+const modelData = ref({
+  visible: false,
+  serverId: "",
+});
+
+const hideModel = () => {
+  modelData.value.visible = false;
+};
+
+const triggerModel = (serverId: string) => {
+  modelData.value.serverId = serverId;
+  modelData.value.visible = true;
+};
 
 const addServer = async () => {
   loading.value = true;
