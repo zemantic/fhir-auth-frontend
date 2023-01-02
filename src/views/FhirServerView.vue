@@ -7,9 +7,13 @@
     @callback-event="deleteServer"
     :modelData="modelData"
   />
-
   <div class="container mx-auto">
-    <div class="rounded-md bg-white p-6 space-y-4">
+    <div class="rounded-md bg-white p-4 space-y-4">
+      <Notification
+        v-if="hasNotification"
+        :message="notificationMessage"
+        type="warning"
+      />
       <h2 class="text-lg font-bold">FHIR Server Details</h2>
       <div class="control">
         <label for="serverName" class="font-semibold text-sm"
@@ -63,15 +67,15 @@
           label="Add FHIR Server"
           variant="primary"
           :loading="loading"
-          :disabled="loading"
+          :disabled="btnDisabled"
         />
 
         <Button
-          @click="deleteServer()"
+          @click="triggerModel(params)"
           label="Delete Server"
           variant="error"
           :loading="loading"
-          :disabled="loading"
+          :disabled="btnDisabled"
         />
       </div>
     </div>
@@ -86,6 +90,7 @@ import { useRoute } from "vue-router";
 import { Input, Textarea, Button, Toggle } from "@flavorly/vanilla-components";
 import Navbar from "@/components/Navbar.vue";
 import Model from "@/components/Model.vue";
+import Notification from "@/components/Notification.vue";
 import LoadingBar from "@/components/LoadingBar.vue";
 import { keys } from "lodash";
 
@@ -104,7 +109,7 @@ const fhirServerDescription = ref("");
 const fhirServerEndpoint = ref("");
 const fhirServerEndpointHasError = ref(false);
 const fhirServerEndpointErrorMessage = ref("");
-const serverId = ref("");
+const btnDisabled = ref(false);
 
 const fhirServerIsActive = ref(true);
 const mode = ref("post");
@@ -184,7 +189,7 @@ const deleteServer = async () => {
     }
   );
 
-  if (!request.ok) {
+  if (!request.ok || request.status !== 200) {
     notificationMessage.value =
       "An unexpected error occured in deleting server";
     hasNotification.value = true;
@@ -192,18 +197,15 @@ const deleteServer = async () => {
     return;
   }
 
-  if (request.status !== 200) {
-    hasNotification.value = true;
-    notificationMessage.value = `An unexpected error occured when deleting server`;
-    return;
-  }
-
   hasNotification.value = true;
-  notificationMessage.value = "Server successfully deleted";
+  notificationMessage.value = "Server successfully deleted from the system";
+  loading.value = false;
+  btnDisabled.value = true;
 };
 
 onMounted(async () => {
   if (route.params.id && route.params.id !== "register") {
+    btnDisabled.value = true;
     params.value = route.params.id;
     mode.value = "patch";
     loading.value = true;
@@ -216,17 +218,11 @@ onMounted(async () => {
       }
     );
 
-    if (!server.ok) {
+    if (!server.ok || server.status !== 200) {
       notificationMessage.value =
         "An error occured in getting FHIR server details";
       hasNotification.value = true;
-      return;
-    }
-
-    if (server.status !== 200) {
-      notificationMessage.value =
-        "An error occured in getting FHIR server details";
-      hasNotification.value = true;
+      loading.value = false;
       return;
     }
 
@@ -239,6 +235,7 @@ onMounted(async () => {
     fhirServerDescription.value =
       parseFhirServer.data.fhirServer.fhirServerDescription;
     loading.value = false;
+    btnDisabled.value = false;
   }
 });
 
