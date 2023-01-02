@@ -3,7 +3,7 @@
 ![GitHub](https://img.shields.io/github/license/zemantic/fhir-auth-frontend?style=flat-square)
 ![GitHub issues](https://img.shields.io/github/issues/zemantic/fhir-auth-frontend?style=flat-square)
 
-This repository is for development of FHIR Auth server's frontend.
+This repository is for development of FHIR Auth server's frontend. FHIR Auth frontend is not a standalone application but a user interface for the FHIR Auth server.
 
 Read more about FHIR Auth server
 
