@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@flavorly/vanilla-components": "^0.7.14",
-    "@headlessui/vue": "^1.7.5",
+    "@headlessui/vue": "^1.7.7",
     "@heroicons/vue": "^2.0.13",
     "@popperjs/core": "^2.11.6",
     "@tailwindcss/aspect-ratio": "^0.4.2",
