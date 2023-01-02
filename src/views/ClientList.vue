@@ -310,7 +310,7 @@ const triggerModel = (clientId: string) => {
 
 // sends the delete request to delete client
 const deleteClient = async () => {
-  const deleteClient = await fetch(
+  const deleteClientRequest = await fetch(
     `${import.meta.env.VITE_SERVER_URL}/api/client/${modelData.value.clientId}`,
     {
       method: "DELETE",
@@ -319,5 +319,17 @@ const deleteClient = async () => {
       }),
     }
   );
+
+  if (deleteClientRequest.status !== 200 || !deleteClientRequest.ok) {
+    hasNotification.value = true;
+    notificationMessage.value =
+      "An unexpected error occrured in deleting client";
+    return;
+  }
+
+  if (deleteClientRequest.status === 200) {
+    hasNotification.value = true;
+    notificationMessage.value = "Client deleted successfully";
+  }
 };
 </script>
