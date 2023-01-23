@@ -16,7 +16,7 @@
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.3",
     "@tailwindcss/typography": "^0.5.8",
-    "libphonenumber-js": "^1.10.17",
+    "libphonenumber-js": "^1.10.18",
     "pinia": "^2.0.29",
     "vue": "^3.2.38",
     "vue-router": "^4.1.6"
