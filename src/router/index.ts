@@ -6,6 +6,7 @@ import { KeyStore } from "@/store/keyStore";
 import FhirServerView from "@/views/FhirServerView.vue";
 import ClientList from "@/views/ClientList.vue";
 import ServerList from "@/views/ServerList.vue";
+import Settings from "@/views/Settings.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -62,6 +63,11 @@ const router = createRouter({
       path: "/dashboard/servers",
       name: "ServerList",
       component: ServerList,
+    },
+    {
+      path: "/dashboard/settings",
+      name: "Settings",
+      component: Settings,
     },
   ],
 });
