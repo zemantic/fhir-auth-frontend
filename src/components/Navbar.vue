@@ -203,7 +203,7 @@
               <div
                 class="flex items-center relative cursor-pointer whitespace-nowrap"
               >
-                New Client
+                Add Client
               </div>
             </a>
             <div class="block relative"></div>
@@ -225,10 +225,12 @@
             <div class="inline relative">
               <DropdownMenu v-model="dropDownValue" text="Options">
                 <!-- Option -->
-                <DropdownOption>
-                  <Cog6ToothIcon class="w-5 h-5 mr-2" />
-                  <span>Settings</span>
-                </DropdownOption>
+                <a href="/dashboard/settings">
+                  <DropdownOption>
+                    <Cog6ToothIcon class="w-5 h-5 mr-2" />
+                    <span>Settings</span>
+                  </DropdownOption>
+                </a>
                 <!-- Option -->
                 <DropdownOption>
                   <UserIcon class="w-5 h-5 mr-2" />
