@@ -24,23 +24,11 @@
           >Client Name</label
         >
         <Input
-          placeholder="Suitable client name"
           v-model="clientName"
-          autofocus
-          errors="Client name is required"
+          placeholder="Dead simple"
+          feedback="You can add SVGs as addons before & After"
           :hasErrors="clientNameRequired"
         />
-        <!-- <input
-          ref="clientNameInput"
-          v-model="clientName"
-          class="block w-full rounded-md px-3 py-2 border-2 mt-1 focus:outline-none focus:border-teal-600"
-          placeholder="Provide a suitable client name"
-          autofocus
-          type="text"
-        /> -->
-        <!-- <span v-if="clientNameRequired" class="text-red-600 text-sm"
-          >* Client name is required</span
-        > -->
       </div>
 
       <div class="control">
@@ -129,106 +117,13 @@
         </div>
         <div class="grid grid-cols-8 mt-2 gap-4 pb-1.5">
           <div class="col-span-2">
-            <div class="w-full svelte-1l8159u">
-              <div
-                class="my-2 bg-white p-1 flex border focus-within:border-teal-600 border-gray-200 rounded svelte-1l8159u"
-              >
-                <div class="flex flex-auto flex-wrap"></div>
-                <input
-                  ref="resourceInput"
-                  v-model="resource"
-                  placeholder="Select FHIR resource"
-                  class="p-1 px-2 appearance-none outline-none w-full text-gray-800"
-                />
-                <div>
-                  <button
-                    @click="clearResource()"
-                    class="cursor-pointer w-6 h-full flex items-center text-gray-400 outline-none focus:outline-none"
-                  >
-                    <svg
-                      class="feather feather-x"
-                      fill="none"
-                      height="24"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <line x1="18" x2="6" y1="6" y2="18" />
-                      <line x1="6" x2="18" y1="6" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-                <div
-                  class="text-gray-300 w-8 py-1 pl-2 pr-1 border-l flex items-center border-gray-200 svelte-1l8159u"
-                >
-                  <button
-                    @click="toggleResourceSelectionMenu()"
-                    class="cursor-pointer w-6 h-full text-gray-600 outline-none focus:outline-none"
-                  >
-                    <svg
-                      v-if="!chevronUp"
-                      class="feather feather-chevron-down"
-                      fill="none"
-                      height="24"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                    <svg
-                      v-if="chevronUp"
-                      class="feather feather-chevron-up"
-                      fill="none"
-                      height="24"
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      viewBox="0 0 24 24"
-                      width="24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <polyline points="18 15 12 9 6 15" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div
-              v-if="toggleResourceSelection"
-              class="absolute shadow top-100 z-40 w-1/4 rounded max-h-select overflow-y-auto"
-            >
-              <div class="flex flex-col w-full">
-                <div
-                  v-for="(item, index) in resourceList"
-                  :key="index"
-                  class="cursor-pointer w-full border-gray-100 border-b hover:bg-teal-100"
-                >
-                  <div
-                    class="flex w-full items-center p-2 pl-2 border-transparent bg-white border-l-2 relative hover:bg-teal-600 hover:text-teal-100"
-                  >
-                    <div class="w-full items-center flex">
-                      <button
-                        :disabled="!item.isActive"
-                        @click="selectResource(item)"
-                        class="mx-2 text-left w-full leading-6 disabled:text-gray-40"
-                      >
-                        {{ item.resourceName }}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <RichSelect
+              v-model="resource"
+              name="selectedResource"
+              placeholder="Please select FHIR resource"
+              :options="resourceOptions"
+              :clearable="true"
+            ></RichSelect>
           </div>
           <div class="flex items-center space-x-2">
             <input
@@ -457,6 +352,10 @@ import {
   Select,
   Textarea,
   Toggle,
+  RichSelect,
+  RichSelectOptionImage,
+  RichSelectOptionIndicator,
+  VanillaInputGroup,
 } from "@flavorly/vanilla-components";
 
 const router = useRouter();
@@ -558,7 +457,9 @@ onMounted(async () => {
     }
   }
   const resources = await fetch(
-    `${import.meta.env.VITE_SERVER_URL}/api/resources/4.0`,
+    `${import.meta.env.VITE_SERVER_URL}/api/resources/${
+      import.meta.env.VITE_FHIR_VERSION
+    }`,
     {
       headers: new Headers({
         authorization: `bearer ${keyStore.key}`,
@@ -568,6 +469,13 @@ onMounted(async () => {
   if (resources.status === 200) {
     const resourceJSON = await resources.json();
     resourceList.value = resourceJSON.data.resources;
+    resourceList.value.forEach((resource) => {
+      let tempResource: { value: number; text: string } = {
+        value: resource.id,
+        text: resource.resourceName,
+      };
+      resourceOptions.value.push(tempResource);
+    });
   }
 
   const fhirServers = await fetch(
@@ -661,6 +569,13 @@ let resourceUpdate = ref(false);
 let resourceDelete = ref(false);
 let resourceSearch = ref(false);
 let resourceInput = ref();
+let resourceOptions: Ref<
+  {
+    value: number;
+    text: string;
+  }[]
+> = ref([]);
+
 let resourceList: Ref<
   {
     id: number;
@@ -675,13 +590,13 @@ let chevronUp = ref(false);
 let loading = ref(false);
 
 const addNewPrivilage = () => {
-  if (resourceId.value === null) {
+  if (!resource.value) {
     hasNotification.value = true;
     notificationMessage.value = "Please select a FHIR resource";
     return;
   }
 
-  if (privilagesIdArray.indexOf(resourceId.value) !== -1) {
+  if (privilagesIdArray.indexOf(resource.value - 1) !== -1) {
     hasNotification.value = true;
     notificationMessage.value =
       "Resource privilages already exists, please modify it instead";
@@ -689,9 +604,11 @@ const addNewPrivilage = () => {
     return;
   }
 
+  let tempResource = resourceList.value[resource.value - 1];
+
   const newPriviage = {
-    resource: resource.value,
-    resourcesId: resourceId.value,
+    resource: tempResource.resourceName,
+    resourcesId: tempResource.id,
     privilages: {
       create: resourceCreate.value,
       read: resourceRead.value,
@@ -702,7 +619,7 @@ const addNewPrivilage = () => {
   };
 
   privilages.value.push(newPriviage);
-  privilagesIdArray.push(resourceId.value);
+  privilagesIdArray.push(resource.value - 1);
 
   resource.value = "";
   resourceId.value = null;
@@ -718,16 +635,8 @@ const toggleResourceSelectionMenu = () => {
   chevronUp.value = !chevronUp.value;
 };
 
-const selectResource = (selectedResource: {
-  id: number;
-  resourceName: string;
-  fhirVersion: number;
-  isActive: boolean;
-}) => {
-  resource.value = selectedResource.resourceName;
-  resourceId.value = selectedResource.id;
-  toggleResourceSelection.value = !toggleResourceSelection.value;
-  chevronUp.value = !chevronUp.value;
+const selectResource = () => {
+  console.log(resource.value);
 };
 
 const isURL = (url: string): boolean => {

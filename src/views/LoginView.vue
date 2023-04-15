@@ -98,7 +98,7 @@
           />
         </div>
         <Button
-          @click.prevent="login()"
+          @click="login()"
           label="Login"
           variant="primary"
           :loading="isLoading"
