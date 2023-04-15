@@ -25,9 +25,9 @@
         >
         <Input
           v-model="clientName"
-          placeholder="Dead simple"
-          feedback="You can add SVGs as addons before & After"
-          :hasErrors="clientNameRequired"
+          placeholder="FHIR Client Name"
+          feedback="Enter a unique but identifable name"
+          :errors="clientNameRequired"
         />
       </div>
 
@@ -49,7 +49,6 @@
           v-model="clientHost"
           placeholder="Client host URL address"
           :errors="clientHostError"
-          :hasErrors="hasClientHostError"
         />
         <!-- <input
           ref="clientHostInput"
@@ -77,7 +76,6 @@
         <Input
           v-model="clientAuthEndpoint"
           :errors="endpointError"
-          :hasErrors="hasEndpointError"
           placeholder="URL to the public key for authentication. This must have the same domain as the host address"
         />
         <!-- <span v-if="hasEndpointError" class="text-red-600 text-sm">{{
@@ -545,16 +543,13 @@ let notificationMessage = ref();
 // client details
 let clientName = ref();
 let clientId = ref();
-let clientNameInput = ref();
 let clientHostInput = ref();
 let clientAuthEndpointInput = ref();
-let clientNameRequired = ref(false);
+let clientNameRequired = ref("");
 let endpointError = ref("");
 let clientHostError = ref("");
-let hasClientHostError = ref(false);
 let clientHost = ref("");
 let clientAuthEndpoint = ref("");
-let hasEndpointError = ref(false);
 let isActive = ref(true);
 let clientUUID = ref("");
 let clientDescription = ref("");
@@ -657,18 +652,16 @@ const createClient = async () => {
   if (!clientName.value || (clientName.value as string).trim().length === 0) {
     hasNotification.value = true;
     notificationMessage.value = "Please enter a client name";
-    (clientNameInput.value as HTMLInputElement).focus();
-    clientNameRequired.value = true;
+    clientNameRequired.value = "Client name is required";
     return;
   } else {
-    clientNameRequired.value = false;
+    clientNameRequired.value = "";
   }
 
   if (clientHost.value.trim().length === 0 || !isURL(clientHost.value)) {
     hasNotification.value = true;
     notificationMessage.value = "Enter a valid client host address";
     clientHostError.value = "* Invalid client host";
-    hasClientHostError.value = true;
     (clientHostInput.value as HTMLInputElement).focus();
     return;
   }
@@ -681,8 +674,6 @@ const createClient = async () => {
     return;
   }
 
-  hasClientHostError.value = false;
-
   if (
     clientAuthEndpoint.value.trim().length === 0 ||
     !isURL(clientAuthEndpoint.value)
@@ -690,7 +681,6 @@ const createClient = async () => {
     hasNotification.value = true;
     notificationMessage.value = "Enter a valid auth endpoint";
     endpointError.value = "* Invalid auth endpoint";
-    hasEndpointError.value = true;
     (clientAuthEndpointInput.value as HTMLInputElement).focus();
     return;
   } else if (isURL(clientAuthEndpoint.value)) {
@@ -709,7 +699,6 @@ const createClient = async () => {
       notificationMessage.value = "Invalid URLs provided";
     }
   }
-  hasEndpointError.value = false;
 
   if (privilages.value.length === 0) {
     hasNotification.value = true;
