@@ -9,7 +9,7 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@flavorly/vanilla-components": "^0.7.44",
+    "@flavorly/vanilla-components": "^0.7.48",
     "@headlessui/vue": "^1.7.13",
     "@heroicons/vue": "^2.0.17",
     "@popperjs/core": "^2.11.7",
